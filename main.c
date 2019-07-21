@@ -1,54 +1,65 @@
-#include "stm32f10x.h"
 #include "led.h"
 #include "delay.h"
+#include "key.h"
+#include "sys.h"
 
-int main(void)
+#define maxtime 5000										//5ms
+#define i 500
+
+void LED_breath(void)
 {
-	
-delay_init();
-LED_Init();
-
-//库函数操作
-while(1)
-{
-	GPIO_SetBits(GPIOB,GPIO_Pin_5);			//PB.5高电平
-	GPIO_ResetBits(GPIOE,GPIO_Pin_5);		//PE.5低电平
-	
-	delay_ms(500);
-	
-	GPIO_ResetBits(GPIOB,GPIO_Pin_5);		//PB.5低电平
-	GPIO_SetBits(GPIOE,GPIO_Pin_5);			//PE.5高电平
-	
-	delay_ms(500);
+	unsigned int nowtime = 0;
+	nowtime = maxtime;
+	while(1)												//逐渐变亮
+	{
+		nowtime -= i;
+		GPIO_SetBits(GPIOB,GPIO_Pin_5);						//PB5高电平
+		delay_us(maxtime-nowtime);							//高电平时间
+		GPIO_ResetBits(GPIOB,GPIO_Pin_5);					//PB5低电平
+		delay_us(nowtime);									//低电平时间
+		if(nowtime <= 800)break;
+	}
+	nowtime = maxtime;
+	while(1)												//逐渐变暗
+	{
+		nowtime -= i;
+		GPIO_SetBits(GPIOB,GPIO_Pin_5);						//PB5高电平
+		delay_us(nowtime);									//高电平时间
+		GPIO_ResetBits(GPIOB,GPIO_Pin_5);					//PB5低电平
+		delay_us(maxtime-nowtime);							//低电平时间
+		if(nowtime <= 800)break;
+	}
 }
+
+
+ int main(void)
+ {
+ 	vu8 key=0;												//volatile unsigned char	
+	delay_init();	   	  
+ 	LED_Init();			 
+	KEY_Init();         
+	while(1)
+	{
+ 		key=KEY_Scan(0);									//得到键值，不支持连按，返回值确定是否按下与按下哪个
+	   	if(key)
+		{						   
+			switch(key)
+			{				 
+				case KEY1_PRES:								//跑马灯
+					GPIO_SetBits(GPIOB,GPIO_Pin_5);			//PB.5高电平
+					GPIO_ResetBits(GPIOE,GPIO_Pin_5);		//PE.5低电平
+					delay_ms(500);
+					GPIO_ResetBits(GPIOB,GPIO_Pin_5);		//PB.5低电平
+					GPIO_SetBits(GPIOE,GPIO_Pin_5);			//PE.5高电平
+					delay_ms(500);
+					break;
+				case KEY0_PRES:								//呼吸灯
+					LED_breath();
+					break;
+				defalut:break;
+			}
+		}
+	}	 
 }
-
-
-//寄存器操作
-//while(1)
-//{
-// GPIOB->ODR |= 1<<5;			//PB.5高电平，赋值，或运算
-// GPIOE->ODR &= ~(1<<5);		//PE.5低电平，赋值，与运算
-// delay_ms(500);				//延时
-//	
-// GPIOB->ODR &= ~(1<<5);		//PB.5低电平
-// GPIOE->ODR |= 1<<5;			//PE.5高电平
-// delay_ms(500);				//延时
-//}
-
-
-
-//位操作
-//while(1)
-//{
-//	PBout(5) = 1;				//PB.5高电平
-//	PEout(5) = 0;				//PE.5低电平
-//	
-//	delay_ms(500);
-//	
-//	PBout(5) = 0;				//PB.5低电平
-//	PEout(5) = 1;				//PE.5高电平
-//	
-//	delay_ms(500);
-//}
+ 
 
