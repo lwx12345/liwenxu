@@ -1,65 +1,23 @@
+#include "stm32f10x.h"
 #include "led.h"
-#include "delay.h"
-#include "key.h"
-#include "sys.h"
+#include "TIMER.h"
 
-#define maxtime 5000										//5ms
-#define i 500
-
-void LED_breath(void)
+int main(void)
 {
-	unsigned int nowtime = 0;
-	nowtime = maxtime;
-	while(1)												//逐渐变亮
-	{
-		nowtime -= i;
-		GPIO_SetBits(GPIOB,GPIO_Pin_5);						//PB5高电平
-		delay_us(maxtime-nowtime);							//高电平时间
-		GPIO_ResetBits(GPIOB,GPIO_Pin_5);					//PB5低电平
-		delay_us(nowtime);									//低电平时间
-		if(nowtime <= 800)break;
-	}
-	nowtime = maxtime;
-	while(1)												//逐渐变暗
-	{
-		nowtime -= i;
-		GPIO_SetBits(GPIOB,GPIO_Pin_5);						//PB5高电平
-		delay_us(nowtime);									//高电平时间
-		GPIO_ResetBits(GPIOB,GPIO_Pin_5);					//PB5低电平
-		delay_us(maxtime-nowtime);							//低电平时间
-		if(nowtime <= 800)break;
-	}
-}
+	
+NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置中断优先级分组为2
+	
+	
+LED_Init();
 
-
- int main(void)
- {
- 	vu8 key=0;												//volatile unsigned char	
-	delay_init();	   	  
- 	LED_Init();			 
-	KEY_Init();         
-	while(1)
-	{
- 		key=KEY_Scan(0);									//得到键值，不支持连按，返回值确定是否按下与按下哪个
-	   	if(key)
-		{						   
-			switch(key)
-			{				 
-				case KEY1_PRES:								//跑马灯
-					GPIO_SetBits(GPIOB,GPIO_Pin_5);			//PB.5高电平
-					GPIO_ResetBits(GPIOE,GPIO_Pin_5);		//PE.5低电平
-					delay_ms(500);
-					GPIO_ResetBits(GPIOB,GPIO_Pin_5);		//PB.5低电平
-					GPIO_SetBits(GPIOE,GPIO_Pin_5);			//PE.5高电平
-					delay_ms(500);
-					break;
-				case KEY0_PRES:								//呼吸灯
-					LED_breath();
-					break;
-				defalut:break;
-			}
-		}
-	}	 
+	
+//ARR <= 65535; PSC <= 65535;
+//Tout（溢出时间）=（ARR+1)(PSC+1)/Tclk		Tout(us);Tclk(Mhz);
+//2s = 2000000us = (19999+1)(7199+1)/72
+TIM3_Int_Init(19999,7199);					   //2s
+	
+	
+while(1);
+	
 }
- 
 
