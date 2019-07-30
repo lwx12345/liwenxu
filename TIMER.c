@@ -29,15 +29,13 @@ void TIM3_PWM_Init(u16 arr,u16 psc)
 	TIM_TimeBaseInit(TIM3,&TIM_TimeBaseInitStructrue);//初始化定时器
 	
 	
-	TIM_OCInitStructrue.TIM_OCMode = TIM_OCMode_PWM2;//CNT>CCRx为有效
-	TIM_OCInitStructrue.TIM_Pulse = 999;//CCRx
+	TIM_OCInitStructrue.TIM_OCMode = TIM_OCMode_PWM2;//CNT>CCR1为有效
 	TIM_OCInitStructrue.TIM_OutputState = TIM_OutputState_Enable;//输出使能
 	TIM_OCInitStructrue.TIM_OCPolarity = TIM_OCPolarity_High;//有效为高电平
 	TIM_OC1Init(TIM3,&TIM_OCInitStructrue);//TIM3_CH1(PC6)
 	
 	
-	TIM_OCInitStructrue.TIM_OCMode = TIM_OCMode_PWM2;//CNT>CCRx为有效
-	TIM_OCInitStructrue.TIM_Pulse = 999;//CCRx
+	TIM_OCInitStructrue.TIM_OCMode = TIM_OCMode_PWM2;//CNT>CCR2为有效
 	TIM_OCInitStructrue.TIM_OutputState = TIM_OutputState_Enable;//输出使能
 	TIM_OCInitStructrue.TIM_OCPolarity = TIM_OCPolarity_High;//有效为高电平
 	TIM_OC2Init(TIM3,&TIM_OCInitStructrue);	//TIM3_CH2(PC7)
@@ -50,3 +48,4 @@ void TIM3_PWM_Init(u16 arr,u16 psc)
 	TIM_Cmd(TIM3,ENABLE);//使能定时器
 	
 }
+

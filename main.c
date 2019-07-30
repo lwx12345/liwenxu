@@ -14,73 +14,53 @@
 #define IN4_ON		GPIO_SetBits(GPIOB,GPIO_Pin_6)
 #define IN4_OFF		GPIO_ResetBits(GPIOB,GPIO_Pin_6)
 
-void zhengzhuan(void)//正转
-{
-	u8 i = 0;
-	while(1)
-	{
-		switch(i)
-		{
-			case 0:
-				IN1_OFF; IN2_ON;  IN3_ON;  IN4_ON; //0111
-			case 1:
-				IN1_ON;  IN2_OFF; IN3_ON;  IN4_ON; //1011
-			case 2:
-				IN1_ON;  IN2_ON;  IN3_OFF; IN4_ON; //1101
-			case 3:
-				IN1_ON;  IN2_ON;  IN3_ON;  IN4_OFF;//1110
-			default:break;
-		}
-		i++;
-		if(i == 4)i = 0;
-		delay_ms(4);
-	}
-}
-void fanzhuan(void)//反转
-{
-	u8 i = 0;
-	while(1)
-	{
-		switch(i)
-		{
-			case 0:
-				IN1_ON;  IN2_ON;  IN3_ON;  IN4_OFF;//1110
-			case 1:
-				IN1_ON;  IN2_ON;  IN3_OFF; IN4_ON; //1101
-			case 2:
-				IN1_ON;  IN2_OFF; IN3_ON;  IN4_ON; //1011
-			case 3:
-				IN1_OFF; IN2_ON;  IN3_ON;  IN4_ON; //0111
-			default:break;
-		}
-		i++;
-		if(i == 4)i = 0;
-		delay_ms(4);
-	}
-}
+
 int main(void)
 {
 	vu8 key = 0;
+	u8 dir = 1;
+	u16 pwmval = 7190;
 	KEY_Init();
 	delay_init();
 	motor_Init();
-	TIM3_PWM_Init(1999,719);//PWM频率:72000000/((1999+1)(719+1)) = 50hz
+	TIM3_PWM_Init(7199,199);//PWM频率:72000000/((7199+1)(199+1)) = 50hz
 	while(1)//正转
 	{
-		key=KEY_Scan(0);//得到键值，不支持连按，返回值确定是否按下与按下哪个
-	   	if(key)
-		{						   
-			switch(key)
-			{				 
-				case KEY1_PRES:	//正转
-					zhengzhuan();
-					break;
-				case KEY0_PRES:	//反转
-					fanzhuan();
-					break;
-				default:break;
+		while(1)//正转,速度先增加后减小
+		{
+			if(dir)pwmval -= 10;
+			else pwmval +=10;
+			IN1_ON; IN2_OFF;//M1正转
+			IN3_ON; IN4_OFF;//M2正转
+			TIM_SetCompare1(TIM3,pwmval); //改变CCR1的值
+			TIM_SetCompare2(TIM3,pwmval); //改变CCR2的值
+			if(pwmval <= 100)dir--;
+			if(dir == 0&&pwmval >= 7190)
+			{
+				dir++;
+				break;
 			}
 		}
+		delay_ms(10);
+		while(1)//反转,速度先增加后减小
+		{
+			if(dir)pwmval -= 10;
+			else pwmval +=10;
+			IN1_OFF; IN2_ON;//M1反转
+			IN3_OFF; IN4_ON;//M2反转
+			TIM_SetCompare1(TIM3,pwmval); //改变CCR1的值
+			TIM_SetCompare2(TIM3,pwmval); //改变CCR2的值
+			if(pwmval <= 100)dir--;
+			if(dir == 0&&pwmval >= 7190)
+			{
+				dir++;
+				break;
+			}
+		}
+		IN1_OFF;IN2_OFF;//停止
+		IN3_OFF;IN4_OFF;
+		delay_ms(500);
+		
 	}
 	
 }
